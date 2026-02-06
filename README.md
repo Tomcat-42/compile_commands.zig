@@ -1,4 +1,4 @@
-# zig compile commands
+# compile_commands.zig
 
 Simple build module to generate a `compile_commands.json`
 file from [clang compilation database fragments](https://reviews.llvm.org/D66555) dir.
@@ -10,14 +10,14 @@ Note: I will only maintain support for zig master.
 Fetch the package:
 
 ```sh
-zig fetch --save=compile_commands git+https://github.com/Tomcat-42/zig-compile-commands
+zig fetch --save=compile_commands git+https://github.com/Tomcat-42/compile_commands.zig
 ```
 
-Add the `-gen-cdb-fragment-path <DIR>` flag to your target. Here <DIR> could be any dir, 
+Add the `-gen-cdb-fragment-path <DIR>` flag to your target. Here <DIR> could be any dir,
 for example the zig cache:
 
 ```zig
-const flags: []const []const u8 = &.{ 
+const flags: []const []const u8 = &.{
     "-std=c23",
     "-Wall",
     "-Wextra",
@@ -48,18 +48,19 @@ const exe = b.addExecutable(.{
 });
 ```
 
-Now, create the step. The arguments are the fragments dir(the same that you added to the flags)
-and the resulting `compile_commands.json` path:
+Now, create the step. `cdb_dir` is the fragments dir (the same that you added to the flags).
+`output_path` is an optional output directory for `compile_commands.json` (defaults to the install prefix):
 
 ```zig
+const CompileCommands = @import("compile_commands");
+
 const cc_step = b.step("cc", "Generate Compile Commands Database");
-const gen_file_step = try GenCompileCommands.createStep(
-    b,
-    b.fmt("{s}/{s}", .{ b.cache_root.path orelse "./", "cdb" }),
-    b.fmt("{s}/{s}", .{ b.cache_root.path orelse "./", "compile_commands.json" }),
-);
-gen_file_step.dependOn(&exe.step);
-cc_step.dependOn(gen_file_step);
+const gen_cc = CompileCommands.create(b, .{
+    .cdb_dir = .{ .cwd_relative = b.fmt("{s}/{s}", .{ b.cache_root.path.?, "cdb" }) },
+    // .output_path = ".", // defaults to install prefix (zig-out/)
+});
+gen_cc.step.dependOn(&exe.step);
+cc_step.dependOn(&gen_cc.step);
 ```
 
 Finally, generate the file:

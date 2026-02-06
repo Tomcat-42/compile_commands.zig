@@ -30,17 +30,17 @@ jobs:
       - name: Verify compile_commands.json
         working-directory: ./example
         run: |
-          if [ ! -f "compile_commands.json" ]; then
+          if [ ! -f "zig-out/compile_commands.json" ]; then
             echo "error: compile_commands.json not found!"
             exit 1
           fi
 
-          if [ ! -s "compile_commands.json" ]; then
+          if [ ! -s "zig-out/compile_commands.json" ]; then
             echo "compile_commands.json is empty!"
             exit 1
           fi
 
-          if ! jq empty compile_commands.json 2>/dev/null; then
+          if ! jq empty zig-out/compile_commands.json 2>/dev/null; then
             echo "error: compile_commands.json contains invalid JSON!"
             exit 1
           fi
