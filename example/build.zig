@@ -5,7 +5,13 @@ const CompileCommands = @import("compile_commands");
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
-    const flags: []const []const u8 = &.{ "-gen-cdb-fragment-path", ".zig-cache/cdb" };
+    const flags: []const []const u8 = &.{
+        "-gen-cdb-fragment-path",
+        ".zig-cache/cdb",
+        "-std=c2y",
+        "-Wall",
+        "-Wextra",
+    };
 
     const example_mod = b.createModule(.{
         .target = target,
